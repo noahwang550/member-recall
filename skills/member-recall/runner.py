@@ -29,7 +29,8 @@ from references.production_crm_assistant import (
     check_sensitive_words,
     heuristic_matching_cold_start,
     generate_ab_groups,
-    generate_test_data
+    generate_test_data,
+    get_llm_client
 )
 
 
@@ -69,16 +70,20 @@ class MemberRecallRunner:
         with open(self.state_file, 'w', encoding='utf-8') as f:
             json.dump(self.state, f, ensure_ascii=False, indent=2)
 
-    def get_api_key(self):
-        """获取API Key"""
-        env_key = self.config.get('api_key_env', 'ANTHROPIC_AUTH_TOKEN')
-        api_key = os.environ.get(env_key)
-        if not api_key:
-            # 尝试从环境变量获取ANTHROPIC_API_KEY
-            api_key = os.environ.get('ANTHROPIC_API_KEY')
-        if not api_key:
-            raise ValueError(f"API Key not found. Please set {env_key} or ANTHROPIC_API_KEY environment variable.")
-        return api_key
+    def init_llm_client(self):
+        """初始化 LLM 客户端，自动检测可用的大模型提供商"""
+        llm = get_llm_client(self.config)
+        provider_info = llm.get_provider_info()
+        if not os.environ.get(provider_info['provider'].upper() + '_API_KEY') and not os.environ.get('ANTHROPIC_AUTH_TOKEN'):
+            # 检查是否有其他可用的 API key
+            available_keys = []
+            for key in ['ZHIPU_API_KEY', 'DASHSCOPE_API_KEY', 'ERNIE_API_KEY', 'DEEPSEEK_API_KEY', 'MOONSHOT_API_KEY']:
+                if os.environ.get(key):
+                    available_keys.append(key)
+            if not available_keys:
+                print(f"⚠️ 警告: 未检测到有效的 API Key，将使用 {provider_info['description']} 但可能调用失败")
+        print(f"✓ 已选择 LLM: {provider_info['description']} (模型: {provider_info['model']})")
+        return llm
 
     def run_step0(self):
         """执行步骤0：初始化"""
@@ -123,7 +128,7 @@ class MemberRecallRunner:
             return None
 
         df = pd.read_csv(data_file)
-        motivations = propose_and_confirm_motivations(df, self.get_api_key())
+        motivations = propose_and_confirm_motivations(df, self.config)
 
         # 保存状态
         self.state['step'] = 1
@@ -156,7 +161,7 @@ class MemberRecallRunner:
         motivations = self.state['motivations']
         brand_info = self.state.get('brand_info', {})
 
-        copy_library = propose_and_confirm_copy(motivations, brand_info, self.get_api_key())
+        copy_library = propose_and_confirm_copy(motivations, brand_info, self.config)
 
         # 敏感词检测
         copy_library, warnings = check_sensitive_words(copy_library)
@@ -241,6 +246,9 @@ class MemberRecallRunner:
         print("=" * 60)
         print("开始执行会员召回完整流程")
         print("=" * 60)
+
+        # 初始化 LLM 客户端
+        self.init_llm_client()
 
         # 步骤0: 初始化
         if not data_file:

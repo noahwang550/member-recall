@@ -23,7 +23,22 @@ description: "生产级交互式CRM会员召回Skill。引导运营团队完成�
 ### 必要输入
 
 - **会员数据CSV文件**：包含完整字段的会员数据（如 `members_data_YYYYMM.csv`）
-- **API Key**：用于调用 LLM 生成动机和文案
+- **API Key**：自动检测可用的大模型提供商，无需手动配置
+
+#### 支持的大模型提供商
+
+| 提供商 | 环境变量 | 说明 |
+|--------|----------|------|
+| **智谱清言 (GLM)** | `ZHIPU_API_KEY` | 国内领先的中文大模型 |
+| **通义千问 (Qwen)** | `DASHSCOPE_API_KEY` | 阿里云大模型 |
+| **文心一言 (ERNIE)** | `ERNIE_API_KEY` | 百度大模型 |
+| **DeepSeek** | `DEEPSEEK_API_KEY` | 开源大模型 |
+| **月之暗面 (Kimi)** | `MOONSHOT_API_KEY` | 长上下文大模型 |
+| **阶跃星辰 (StepFun)** | `STEPFUN_API_KEY` | 国内新锐大模型 |
+| **腾讯混元** | `TENCENT_HUNYAN_API_KEY` | 腾讯大模型 |
+| **Anthropic Claude** | `ANTHROPIC_AUTH_TOKEN` | 海外大模型 |
+
+> **自动检测**：设置任意一个环境变量即可，skill 会自动识别可用的大模型
 
 ### 会员数据字段要求
 
@@ -45,7 +60,7 @@ description: "生产级交互式CRM会员召回Skill。引导运营团队完成�
 
 | 步骤 | 名称 | 输出 |
 |------|------|------|
-| **步骤0** | 初始化 | 确认API Key，导入/生成会员数据 |
+| **步骤0** | 初始化 | 确认数据文件，导入会员数据 |
 | **步骤1/5** | 动机洞察 | 用户确认的动机JSON（如 A/B/C/D 四类） |
 | **步骤1.5/5** | 品牌调性确认 | 品牌名称、品牌调性（高端/亲民/情感/简约） |
 | **步骤2/5** | 文案创生 | 用户审核确认的文案库（按动机分类），含敏感词检测 |
@@ -176,15 +191,11 @@ else:
 ```
 member-recall/
 ├── SKILL.md                    # Skill定义（本文档）
-├── config.json                 # 配置文件（API Key、脱敏处理等）
+├── config.json                 # 配置文件
 ├── runner.py                   # 统一入口脚本
 ├── references/
 │   ├── __init__.py
-│   ├── production_crm_assistant.py  # 核心执行逻辑
-│   ├── templates/              # 文案模板库
-│   │   ├── copy_templates.json
-│   │   └── generic_copy.json   # 通用文案模板
-│   └── sensitive_words.json    # 敏感词库
+│   └── production_crm_assistant.py  # 核心执行逻辑（含敏感词检测）
 ├── data/                       # 数据目录（运行时生成）
 └── evals/
     └── evals.json              # 评估用例
@@ -193,9 +204,22 @@ member-recall/
 ### 完整代码
 
 请参考以下文件：
-- `references/production_crm_assistant.py` - 核心执行逻辑
+- `references/production_crm_assistant.py` - 核心执行逻辑（包含LLM客户端、敏感词检测等）
 - `runner.py` - 统一入口脚本
 - `config.json` - 配置文件
+
+### 依赖说明
+
+```bash
+# 安装依赖
+pip install pandas requests anthropic
+```
+
+| 包名 | 说明 |
+|------|------|
+| pandas | 数据处理 |
+| requests | HTTP 请求（用于调用国内大模型API） |
+| anthropic | Anthropic Claude SDK（可选，用于Claude API） |
 
 ### 代码模块
 
@@ -212,6 +236,9 @@ member-recall/
 ### 运行方式
 
 ```bash
+# 使用环境变量设置API Key（仅CLI场景需要）
+export ANTHROPIC_AUTH_TOKEN=your_api_key
+
 # 使用runner.py（推荐）
 python runner.py --full --data members_data.csv
 
@@ -222,25 +249,24 @@ python runner.py --step 4                            # 步骤4：产出交付
 
 # 继续上次中断的流程
 python runner.py --resume
-
-# 直接调用核心模块
-python production_crm_assistant.py --input_file members_data.csv --api_key YOUR_KEY --test_ratio 0.5
 ```
 
 ### 配置文件 (config.json)
 
 ```json
 {
-  "api_key_env": "ANTHROPIC_AUTH_TOKEN",
+  "model_provider": "auto",
   "default_test_ratio": 0.5,
   "output_dir": "data",
-  "sensitive_words_file": "references/sensitive_words.json",
-  "templates_dir": "references/templates",
   "high_value_threshold": 0.9,
   "price_sensitive_threshold": 0.75,
   "generic_copy": "亲爱的会员，我们一直想念您，期待您的归来。"
 }
 ```
+
+> **说明**: 
+> - `model_provider`: 设置为 `auto` 自动检测可用的大模型，或指定具体提供商如 `zhipu`、`tongyi`、`deepseek` 等
+> - 在 AI 产品中运行时，产品会自动注入 API Key 到环境变量，无需手动配置
 
 ---
 

@@ -16,7 +16,7 @@ sys.path.insert(0, CREATOR_PATH)
 EXCLUDE_DIRS = {"__pycache__", "node_modules"}
 EXCLUDE_GLOBS = {"*.pyc"}
 EXCLUDE_FILES = {".DS_Store"}
-ROOT_EXCLUDE_DIRS = {"evals"}
+ROOT_EXCLUDE_DIRS = set()  # 不排除任何根目录
 
 def should_exclude(rel_path):
     parts = rel_path.parts
