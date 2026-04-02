@@ -1,0 +1,53 @@
+{
+  "api_key_env": "ANTHROPIC_AUTH_TOKEN",
+  "default_test_ratio": 0.5,
+  "output_dir": "data",
+  "sensitive_words_file": "references/sensitive_words.json",
+  "templates_dir": "references/templates",
+  "high_value_threshold": 0.9,
+  "price_sensitive_threshold": 0.75,
+  "generic_copy": "亲爱的会员，我们一直想念您，期待您的归来。",
+  "sensitive_words": {
+    "version": "1.0",
+    "last_updated": "2026-04-02",
+    "words": {
+      "forbidden": [
+        {"word": "最高", "replacement": "高品质"},
+        {"word": "国家级", "replacement": ""},
+        {"word": "最佳", "replacement": "优质"},
+        {"word": "第一", "replacement": "领先"},
+        {"word": "顶级", "replacement": "高端"},
+        {"word": "顶尖", "replacement": "卓越"},
+        {"word": "绝对", "replacement": "非常"},
+        {"word": "100%", "replacement": "高品质"}
+      ],
+      "extreme": [
+        {"word": "唯一", "replacement": "仅有"},
+        {"word": "首选", "replacement": "推荐"},
+        {"word": "首家", "replacement": "较早推出"},
+        {"word": "最先进", "replacement": "先进"}
+      ],
+      "inducing": [
+        {"word": "立即抢购", "warning": true},
+        {"word": "过期不候", "warning": true},
+        {"word": "马上领取", "warning": true},
+        {"word": "不容错过", "warning": true},
+        {"word": "最后机会", "warning": true},
+        {"word": "限时优惠", "warning": true}
+      ],
+      "personal_info": [
+        {"word": "身份证", "warning": true},
+        {"word": "银行卡", "warning": true},
+        {"word": "密码", "warning": true},
+        {"word": "验证码", "warning": true}
+      ],
+      "false_claim": [
+        {"word": "保证收益", "warning": true},
+        {"word": "无风险", "warning": true},
+        {"word": "100%有效", "warning": true},
+        {"word": "根治", "warning": true},
+        {"word": "彻底治愈", "warning": true}
+      ]
+    }
+  }
+}
