@@ -1,0 +1,12 @@
+{
+  "name": "member-recall-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for AI-powered member recall solution",
+  "main": "create_ppt.js",
+  "scripts": {
+    "start": "node create_ppt.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0"
+  }
+}
