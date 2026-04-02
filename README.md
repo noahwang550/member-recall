@@ -1,4 +1,4 @@
-# Member Recall Skill - 生产级交互式CRM会员召回
+# Member Recall Skill - 会员召回
 
 <div align="center">
 
