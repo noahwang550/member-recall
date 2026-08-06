@@ -1,41 +1,50 @@
 # Member Recall Skill - 会员召回
 
+<div align="center">
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
+[![Skill](https://img.shields.io/badge/Claude%20Code-Skill-purple.svg)](https://claude.com/claude-code)
+
+</div>
+
 生产级交互式 CRM 会员召回技能（Claude Code Skill）。
 
-引导运营团队完成严谨的、分阶段的会员召回生产任务：步骤0 初始化 → 步骤1 动机洞察 → 步骤1.5 品牌调性 → 步骤1.7 联网调研 → 步骤2 文案创生 → 步骤3 策略匹配 → 步骤4 产出交付。
+引导运营团队完成严谨的、分阶段的会员召回生产任务：**步骤0 初始化 → 步骤1 动机洞察 → 步骤1.5 品牌调性 → 步骤1.7 联网调研 → 步骤2 文案创生 → 步骤3 策略匹配 → 步骤4 产出交付**。
 
 ## 设计理念
 
-- **Claude 即大模型**：动机洞察、文案创生由 Claude 直接生成，无需任何外部 API Key 或环境变量。
+- **Claude 即大模型**：动机洞察、文案创生由 Claude 直接生成，**无需任何外部 API Key 或环境变量**。
 - **Python 仅做确定性处理**：CSV 读写、数据画像、敏感词检测、启发式匹配、A/B 分组由 `data_utils.py` 完成。
-
-Member Recall Skill 是一个**会员召回**技能，引导运营团队完成严谨的、分阶段的会员召回生产任务。
 
 ### 核心特性
 
 - ✅ **无模拟** - 每一步都基于真实数据和业务逻辑
 - ✅ **无假设** - 所有输出都可直接用于生产环境
 - ✅ **可执行** - 每个步骤都有明确的操作指令
-- ✅ **多LLM支持** - 支持智谱、通义、文心、DeepSeek、Claude等多种大模型
+- ✅ **数据驱动** - 动机洞察基于实际数据画像，有证据支撑
+- ✅ **调研驱动** - 文案基于真实品牌事实与行业实践，非泛泛模板
+- ✅ **合规** - 敏感词检测、文案模板化、A/B 对照设计
 
 ---
 
 ## 🎯 功能概述
 
-本技能完成一个完整的5步骤会员召回流程：
+本技能完成一个完整的 7 阶段会员召回流程：
 
 | 步骤 | 名称 | 说明 |
 |------|------|------|
 | 步骤0 | 初始化 | 确认数据文件，导入会员数据 |
-| 步骤1 | 动机洞察 | LLM生成动机初稿，用户审核确认 |
+| 步骤1 | 动机洞察 | 数据画像驱动，提出 4 类有数据支撑的沉睡动机，用户审核确认 |
 | 步骤1.5 | 品牌调性确认 | 确认品牌名称和调性 |
-| 步骤2 | 文案创生 | 生成多版本文案，用户挑选审核，含敏感词检测 |
-| 步骤3 | 策略匹配 | 基于专家规则的启发式冷启动匹配 |
-| 步骤4 | 产出交付 | 生成A/B测试人群包 |
+| 步骤1.7 | 联网调研 | WebSearch 品牌事实/行业实践/竞品/合规，用户确认 |
+| 步骤2 | 文案创生 | 为每个动机生成 3 种风格文案，用户挑选审核，含敏感词检测 |
+| 步骤3 | 策略匹配 | 基于专家规则的启发式冷启动匹配（高价值优先） |
+| 步骤4 | 产出交付 | 生成 A/B 测试人群包（AI 组个性化 vs 对照组通用） |
 
 ---
 
-## 🔄 完整流程图
+## 📁 目录结构
 
 ```
 skills/member-recall/
@@ -102,29 +111,14 @@ python scripts/data_utils.py --action profile --input data/test_members.csv
 # 敏感词检测
 python scripts/data_utils.py --action sensitive-check --copy data/copy_lib.json
 
-# 启发式匹配
-python scripts/data_utils.py --action match --input data/test_members.csv --copy data/copy_lib.json --output data/matched.csv
+# 启发式匹配（--motivations 可选）
+python scripts/data_utils.py --action match --input data/test_members.csv --copy data/copy_lib.json --motivations data/motivations.json --output data/matched.csv
 
 # A/B 分组
 python scripts/data_utils.py --action ab-split --input data/test_members.csv --copy data/copy_lib.json --motivations data/motivations.json --ratio 0.5 --output data/
 ```
 
----
-
-## 📝 配置说明
-
-`config.json` 关键配置项：
-
-```json
-{
-  "model_provider": "auto",
-  "default_test_ratio": 0.5,
-  "output_dir": "data",
-  "high_value_threshold": 0.9,
-  "price_sensitive_threshold": 0.75,
-  "generic_copy": "亲爱的会员，我们一直想念您，期待您的归来。"
-}
-```
+> **无需配置文件**：本技能不依赖 `config.json` 或任何环境变量。所有阈值（P90 高价值、P75 价格敏感）在 `data_utils.py` 中以分位数动态计算，通用文案内置为常量。
 
 ---
 
@@ -132,7 +126,8 @@ python scripts/data_utils.py --action ab-split --input data/test_members.csv --c
 
 - ✅ 敏感词检测，确保文案合规
 - ✅ 文案模板化，避免硬编码动态数据
-- ✅ A/B测试对照组设计，真正验证个性化效果
+- ✅ A/B 测试对照组设计，真正验证个性化效果
+- ✅ 联网调研结果必须附来源，行业特定违禁词并入文案约束
 - ✅ 每个步骤都可解释、可审计
 
 ---
