@@ -1,3 +1,18 @@
 node_modules/
 .DS_Store
 *.pptx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# member-recall throwaway test artifacts (keep the data/ dir via .gitkeep)
+skills/member-recall/data/*.csv
+skills/member-recall/data/*.json
+skills/member-recall/data/*/
+!skills/member-recall/data/.gitkeep
+
+# root-level scratch test output
+/test_data/

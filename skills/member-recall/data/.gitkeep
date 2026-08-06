@@ -1,5 +1,0 @@
-# This directory is used for storing runtime data
-# - test_members.csv: Generated test data
-# - state.json: Runtime state for resume functionality
-# - ai_group_YYYYMMDD.csv: AI group export
-# - control_group_YYYYMMDD.csv: Control group export
